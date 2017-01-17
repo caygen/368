@@ -165,7 +165,7 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
 
 	MatrixMulKernel<<<dimGrid, dimBlock>>>(Md,Nd,Pd);
 	
-	cudaMemcpy(P.elements,Pd.elements,size,cudaMemcpyHostToDevice);	
+	cudaMemcpy(P.elements,Pd.elements,size,cudaMemcpyDeviceToHost);	
 
 	cudaFree(Md.elements);
 	cudaFree(Nd.elements);
