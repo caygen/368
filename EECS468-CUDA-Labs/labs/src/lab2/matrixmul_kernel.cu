@@ -39,7 +39,8 @@
 
 #ifndef _MATRIXMUL_KERNEL_H_
 #define _MATRIXMUL_KERNEL_H_
-#define BLOCK_SIZE 1
+#define BLOCK_SIZE 16 
+#define TILE_DIM 16
 
 #include <stdio.h>
 #include "matrixmul.h"
@@ -61,7 +62,41 @@ __device__ Matrix GetSubMatrix(Matrix A, int row, int col) {
 	return Asub;
 }
 __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
+
 {
+    float CValue = 0;
+
+    int Row = blockIdx.y*TILE_DIM + threadIdx.y;
+    int Col = blockIdx.x*TILE_DIM + threadIdx.x;
+
+    __shared__ float As[TILE_DIM][TILE_DIM];
+    __shared__ float Bs[TILE_DIM][TILE_DIM];
+ //   for (int i = 0; i < TILE_DIM ; i++){
+//	    cuprintf("%f", As[i]); 
+//	}
+    for (int k = 0; k < (TILE_DIM + M.width - 1)/TILE_DIM; k++) {
+
+         if (k*TILE_DIM + threadIdx.x < M.width && Row < M.height)
+             As[threadIdx.y][threadIdx.x] = M.elements[Row*M.width + k*TILE_DIM + threadIdx.x];
+         else
+             As[threadIdx.y][threadIdx.x] = 0.0;
+
+         if (k*TILE_DIM + threadIdx.y < N.height && Col < N.width)
+             Bs[threadIdx.y][threadIdx.x] = N.elements[(k*TILE_DIM + threadIdx.y)*N.width + Col];
+         else
+             Bs[threadIdx.y][threadIdx.x] = 0.0;
+
+         __syncthreads();
+
+         for (int n = 0; n < TILE_DIM; ++n)
+             CValue += As[threadIdx.y][n] * Bs[n][threadIdx.x];
+
+         __syncthreads();
+    }
+
+    if (Row < P.height && Col < P.width)
+        P.elements[((blockIdx.y * blockDim.y + threadIdx.y)*P.width) +
+           (blockIdx.x * blockDim.x)+ threadIdx.x] = CValue;
 /*
 	int Row = blockIdx.y*TILE_WIDTH + threadIdx.y;	
 	int Col = blockIdx.x*TILE_WIDTH + threadIdx.x;
@@ -70,7 +105,7 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 	__shared__ float mblock[TILE_WIDTH][TILE_WIDTH];
 	__shared__ float nblock[TILE_WIDTH][TILE_WIDTH];
 */
-	// Block row and column
+/*	// Block row and column
 	int blockRow = blockIdx.y;
 	int blockCol = blockIdx.x;
 
@@ -80,9 +115,7 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 	// Each thread computes one element of Csub
 	// by accumulating results into Cvalue
 	float Cvalue = 0;
-
-	// Thread row and column within Csub
-	int row = threadIdx.y;
+// Thread row and column within Csub int row = threadIdx.y;
 	int col = threadIdx.x;
 
 	// Loop over all the sub-matrices of A and B that are
@@ -124,6 +157,7 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 	// Write Csub to device memory
 	// Each thread writes one element
 	Csub.elements[row * Csub.pitch + col] = Cvalue;
+*/
 }
 
 #endif // #ifndef _MATRIXMUL_KERNEL_H_
