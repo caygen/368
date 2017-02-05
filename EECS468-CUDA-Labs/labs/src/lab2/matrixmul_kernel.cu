@@ -39,11 +39,12 @@
 
 #ifndef _MATRIXMUL_KERNEL_H_
 #define _MATRIXMUL_KERNEL_H_
-#define BLOCK_SIZE 16
+#define BLOCK_SIZE 1
 
 #include <stdio.h>
 #include "matrixmul.h"
-
+//#include "cuPrintf.cuh"
+//#include "cuPrintf.cu"
 ////////////////////////////////////////////////////////////////////////////////
 //! Simple test kernel for device functionality
 //! @param g_idata  input data in global memory
@@ -76,52 +77,53 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 	// Each thread block computes one sub-matrix Csub of C
 	Matrix Csub = GetSubMatrix(P, blockRow, blockCol);
 
-// Each thread computes one element of Csub
-// by accumulating results into Cvalue
-float Cvalue = 0;
+	// Each thread computes one element of Csub
+	// by accumulating results into Cvalue
+	float Cvalue = 0;
 
-// Thread row and column within Csub
-int row = threadIdx.y;
-int col = threadIdx.x;
+	// Thread row and column within Csub
+	int row = threadIdx.y;
+	int col = threadIdx.x;
 
-// Loop over all the sub-matrices of A and B that are
-// required to compute Csub
-// Multiply each pair of sub-matrices together
-// and accumulate the results
-for (int m = 0; m < (M.width / BLOCK_SIZE); ++m) {
+	// Loop over all the sub-matrices of A and B that are
+	// required to compute Csub
+	// Multiply each pair of sub-matrices together
+	// and accumulate the results
+	for (int m = 0; m < (M.width / BLOCK_SIZE); ++m) {
 
-// Get sub-matrix Asub of A
-Matrix Asub = GetSubMatrix(M, blockRow, m);
+		// Get sub-matrix Asub of A
+		Matrix Asub = GetSubMatrix(M, blockRow, m);
 
-// Get sub-matrix Bsub of B
-Matrix Bsub = GetSubMatrix(N, m, blockCol);
+		// Get sub-matrix Bsub of B
+		Matrix Bsub = GetSubMatrix(N, m, blockCol);
 
-// Shared memory used to store Asub and Bsub respectively
-__shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
-__shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
+		// Shared memory used to store Asub and Bsub respectively
+		__shared__ float As[BLOCK_SIZE][BLOCK_SIZE];
+		__shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE];
 
-// Load Asub and Bsub from device memory to shared memory
-// Each thread loads one element of each sub-matrix
-As[row][col] = Asub.elements[row * Asub.pitch + col]; 
-Bs[row][col] = Bsub.elements[row * Bsub.pitch + col];
+		// Load Asub and Bsub from device memory to shared memory
+		// Each thread loads one element of each sub-matrix
+		As[row][col] = Asub.elements[row * Asub.pitch + col]; 
+		Bs[row][col] = Bsub.elements[row * Bsub.pitch + col];
 
-// Synchronize to make sure the sub-matrices are loaded
-// before starting the computation
-__syncthreads();
+		// Synchronize to make sure the sub-matrices are loaded
+		// before starting the computation
+		__syncthreads();
 
-// Multiply Asub and Bsub together
-for (int e = 0; e < BLOCK_SIZE; ++e)
-Cvalue += As[row][e] * Bs[e][col];
+		// Multiply Asub and Bsub together
+		for (int e = 0; e < BLOCK_SIZE; ++e){
+			Cvalue += As[row][e] * Bs[e][col];
+		}
+	
+		// Synchronize to make sure that the preceding
+		// computation is done before loading two new
+		// sub-matrices of A and B in the next iteration
+		__syncthreads();
+	}
 
-// Synchronize to make sure that the preceding
-// computation is done before loading two new
-// sub-matrices of A and B in the next iteration
-__syncthreads();
-}
-
-// Write Csub to device memory
-// Each thread writes one element
-Csub.elements[row * Csub.pitch + col] = Cvalue;
+	// Write Csub to device memory
+	// Each thread writes one element
+	Csub.elements[row * Csub.pitch + col] = Cvalue;
 }
 
 #endif // #ifndef _MATRIXMUL_KERNEL_H_

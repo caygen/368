@@ -116,7 +116,11 @@ int main(int argc, char** argv) {
 	Matrix reference = AllocateMatrix(P.height, P.width, 0);
 	computeGold(reference.elements, M.elements, N.elements, M.height, M.width, N.width);
         
-	printf("CPU computation complete\n");
+	for (int i = 0; i < reference.width*reference.height;i++){
+		printf("%f",reference.elements[i]);
+		printf(" ");
+	}
+	printf("\n ");
 	// in this case check if the result is equivalent to the expected soluion
 	CUTBoolean res = cutComparefe(reference.elements, P.elements, P.height*P.width, 0.001f);
 	printf("Test %s\n", (1 == res) ? "PASSED" : "FAILED");
@@ -152,14 +156,29 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
 	Matrix Pd = AllocateDeviceMatrix(P);
 	CopyToDeviceMatrix(Pd, P); // Clear memory
 
+	for (int i = 0; i < M.width*M.height;i++){
+		printf("%f",M.elements[i]);
+		printf(" ");
+	}
+	printf("\n");
 	// Setup the execution configuration
 	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
 	dim3 dimGrid(N.width / dimBlock.x, M.height / dimBlock.y);
 	// Launch the device computation threads!
 	MatrixMulKernel<<<dimGrid, dimBlock>>>(Md, Nd, Pd);
 	// Read P from the device
+/*
+	printf("%d",P.width);
+	printf("\n");
+	printf("%d",P.height);
+	printf("\n");
+*/
 	CopyFromDeviceMatrix(P, Pd); 
-
+	for (int i = 0; i < P.width*P.height;i++){
+		printf("%f",P.elements[i]);
+		printf(" ");
+	}
+	printf("\n");
 	// Free device matrices
 	FreeDeviceMatrix(&Md);
 	FreeDeviceMatrix(&Nd);
