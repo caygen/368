@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
+#include "gputimer.h"
 
 // includes, project
 #include <cutil.h>
@@ -162,11 +163,15 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
 	}
 	printf("\n");*/
 	// Setup the execution configuration
-	dim3 dimBlock(TILE_DIM, TILE_DIM); 
+	dim3 dimBlock(BLOCK_SIZE, BLOCK_SIZE); 
 	dim3 dimGrid((N.width + dimBlock.x-1)/dimBlock.x,(M.height + dimBlock.y-1)/dimBlock.y);
 	// Launch the device computation threads!
+	GpuTimer timer;
+	timer.Start();
 	MatrixMulKernel<<<dimGrid, dimBlock>>>(Md, Nd, Pd);
+	timer.Stop();
 	// Read P from the device
+	printf("\n-- %g elapsed --\n", timer.Elapsed());
 /*
 	printf("%d",P.width);
 	printf("\n");

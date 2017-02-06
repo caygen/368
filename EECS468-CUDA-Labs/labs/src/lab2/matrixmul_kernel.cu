@@ -68,8 +68,8 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
     int Row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
     int Col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
 
-    __shared__ float As[BLOCK_SIZE+1][BLOCK_SIZE];
-    __shared__ float Bs[BLOCK_SIZE+1][BLOCK_SIZE];
+    __shared__ float As[BLOCK_SIZE][BLOCK_SIZE+1];
+    __shared__ float Bs[BLOCK_SIZE][BLOCK_SIZE+1];
 //    __shared__ float Ps[BLOCK_SIZE+1][BLOCK_SIZE];
 
  //   for (int i = 0; i < BLOCK_SIZE ; i++){
