@@ -39,12 +39,12 @@
 
 #ifndef _MATRIXMUL_KERNEL_H_
 #define _MATRIXMUL_KERNEL_H_
-#define TILE_DIM 31
+#define BLOCK_SIZE 16
 
 #include <stdio.h>
 #include "matrixmul.h"
-//#include "cuPrintf.cuh"
-//#include "cuPrintf.cu"
+#include "cuprintf.cuh"
+#include "cuprintf.cu"
 ////////////////////////////////////////////////////////////////////////////////
 //! Simple test kernel for device functionality
 //! @param g_idata  input data in global memory
@@ -65,35 +65,39 @@ __global__ void MatrixMulKernel(Matrix M, Matrix N, Matrix P)
 {
     float CValue = 0;
 
-    int Row = blockIdx.y*TILE_DIM + threadIdx.y;
-    int Col = blockIdx.x*TILE_DIM + threadIdx.x;
+    int Row = blockIdx.y*BLOCK_SIZE + threadIdx.y;
+    int Col = blockIdx.x*BLOCK_SIZE + threadIdx.x;
 
-    __shared__ float As[TILE_DIM][TILE_DIM];
-    __shared__ float Bs[TILE_DIM][TILE_DIM];
- //   for (int i = 0; i < TILE_DIM ; i++){
+    __shared__ float As[BLOCK_SIZE+1][BLOCK_SIZE];
+    __shared__ float Bs[BLOCK_SIZE+1][BLOCK_SIZE];
+//    __shared__ float Ps[BLOCK_SIZE+1][BLOCK_SIZE];
+
+ //   for (int i = 0; i < BLOCK_SIZE ; i++){
 //	    cuprintf("%f", As[i]); 
 //	}
-    for (int k = 0; k < (TILE_DIM + M.width - 1)/TILE_DIM; k++) {
+    for (int k = 0; k < (BLOCK_SIZE + M.width - 1)/BLOCK_SIZE; k++) {
 
-         if (k*TILE_DIM + threadIdx.x < M.width && Row < M.height)
-             As[threadIdx.y][threadIdx.x] = M.elements[Row*M.width + k*TILE_DIM + threadIdx.x];
+         if (k*BLOCK_SIZE + threadIdx.x < M.width && Row < M.height)
+             As[threadIdx.y][threadIdx.x] = M.elements[Row*M.width + k*BLOCK_SIZE + threadIdx.x];
          else
              As[threadIdx.y][threadIdx.x] = 0.0;
 
-         if (k*TILE_DIM + threadIdx.y < N.height && Col < N.width)
-             Bs[threadIdx.y][threadIdx.x] = N.elements[(k*TILE_DIM + threadIdx.y)*N.width + Col];
+         if (k*BLOCK_SIZE + threadIdx.y < N.height && Col < N.width)
+             Bs[threadIdx.y][threadIdx.x] = N.elements[(k*BLOCK_SIZE + threadIdx.y)*N.width + Col];
          else
              Bs[threadIdx.y][threadIdx.x] = 0.0;
 
          __syncthreads();
 
-         for (int n = 0; n < TILE_DIM; ++n)
+         for (int n = 0; n < BLOCK_SIZE; ++n)
              CValue += As[threadIdx.y][n] * Bs[n][threadIdx.x];
 
          __syncthreads();
     }
+//	cuPrintf("hi-%f-",As);
+//	printf("hi global");
 
-    if (Row < P.height && Col < P.width)
+       if (Row < P.height && Col < P.width)
         P.elements[((blockIdx.y * blockDim.y + threadIdx.y)*P.width) +
            (blockIdx.x * blockDim.x)+ threadIdx.x] = CValue;
 /*
