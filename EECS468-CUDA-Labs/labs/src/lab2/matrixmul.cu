@@ -171,7 +171,7 @@ void MatrixMulOnDevice(const Matrix M, const Matrix N, Matrix P)
 	MatrixMulKernel<<<dimGrid, dimBlock>>>(Md, Nd, Pd);
 	timer.Stop();
 	// Read P from the device
-	printf("\n-- %g elapsed --\n", timer.Elapsed());
+	printf("-- %g ms elapsed --\n", timer.Elapsed());
 /*
 	printf("%d",P.width);
 	printf("\n");
