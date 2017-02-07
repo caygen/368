@@ -1,0 +1,8 @@
+Block size (Tile Width) = 32 
+Since block is square matrix #threads per block = 32*32 = 1024
+
+from occupancy calculator: we have 2 blocks per SM
+
+and we have 8 SMs
+
+1024 Threads/Block * 2 Blocks/SM * 8 SM = 16384 threads can be scheduled simultaneously
