@@ -39,7 +39,7 @@
 
 #ifndef _MATRIXMUL_KERNEL_H_
 #define _MATRIXMUL_KERNEL_H_
-#define BLOCK_SIZE 31
+#define BLOCK_SIZE 32
 
 #include <stdio.h>
 #include "matrixmul.h"
