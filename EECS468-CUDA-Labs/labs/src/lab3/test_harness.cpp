@@ -90,17 +90,27 @@ int main(int argc, char* argv[])
     /* Include your setup code below (temp variables, function calls, etc.) */
 
 
+    int size = INPUT_HEIGHT * ((INPUT_HEIGHT + 128) & 0xFFFFFF80) * sizeof(uint32_t);
+    void* dinput, dbins;
+    cudaMalloc((void**)&dinput, size);
+    cudaMalloc((void**)&dbins, HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t));
+    cudaMemset(dbins, 0, HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t));
+
+//SELF NOTE input is a pointer to pointer, but cudaMemcpy takes a pointer, so maybe dereference that 
+    cudaMemcpy(dinput, input, size, cudaMemcpyHostToDevice); 
 
     /* End of setup code */
 
     /* This is the call you will use to time your parallel implementation */
     TIME_IT("opt_2dhisto",
             1000,
-            opt_2dhisto( /*Define your own function parameters*/ );)
+            opt_2dhisto(dinput,INPUT_HEIGHT, INPUT_WIDTH,   );)
 
     /* Include your teardown code below (temporary variables, function calls, etc.) */
 
-
+    cudaThreadSynchronize();
+    cudaMemcpy(input, dinput, size, cudaMemcpyDeviceToHost); 
+    cudaFree(dinput);
 
     /* End of teardown code */
 
