@@ -1,9 +1,9 @@
 #ifndef OPT_KERNEL
 #define OPT_KERNEL
 
-void opt_2dhisto( /*Define your own function parameters*/ );
-
-/* Include below the function headers of any other functions that you implement */
-
+void opt_2dhisto(int size, uint32_t* dinput, uint8_t* dbins);
+void tearDown(void* kernel_bins, void* dbins, void* dinput);
+void setUp(void* dinput, void* dbins, int size, uint32_t** input);
+__global__ void HistoKernel(int size, uint32_t* dinput, uint8_t* dbins);
 
 #endif
