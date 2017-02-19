@@ -8,7 +8,7 @@
 
 #include "util.h"
 #include "ref_2dhisto.h"
-#include "opt_2dhisto.h"
+//#include "opt_2dhisto.h"
 
 #define SQRT_2    1.4142135623730950488
 #define SPREAD_BOTTOM   (2)
@@ -22,6 +22,12 @@
         value_ = (min_);\
     else if (value_ > (max_))\
         value_ = (max_);
+
+
+void opt_2dhisto(int size, uint32_t* dinput, uint32_t* dbins);
+void tearDown(void* kernel_bins,void* dout, void* dbins, void* dinput);
+void setUp(void* dinput,void* dout, void* dbins, unsigned int size, void** input);
+void parallel32to8copy(uint32_t* dbins, uint8_t* dout);
 
 // Generate another bin for the histogram.  The bins are created as a random walk ...
 static uint32_t next_bin(uint32_t pix)
@@ -77,7 +83,7 @@ int main(int argc, char* argv[])
     uint8_t *gold_bins = (uint8_t*)malloc(HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t));
 
     // Use kernel_bins for your final result
-    uint8_t *kernel_bins = (uint8_t*)malloc(HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t));
+    uint32_t *kernel_bins = (uint32_t*)malloc(HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint32_t));
 
     // A 2D array of histogram bin-ids.  One can think of each of these bins-ids as
     // being associated with a pixel in a 2D image.
@@ -87,22 +93,32 @@ int main(int argc, char* argv[])
             1000,
             ref_2dhisto(input, INPUT_HEIGHT, INPUT_WIDTH, gold_bins);)
 
+    printf("\nref complete\n");
     /* Include your setup code below (temp variables, function calls, etc.) */
 
-    int size = INPUT_HEIGHT * ((INPUT_HEIGHT + 128) & 0xFFFFFF80) * sizeof(uint8_t);
+    //unsigned int size = INPUT_HEIGHT * ((INPUT_HEIGHT + 128) & 0xFFFFFF80) * sizeof(uint32_t);
+    unsigned int size = INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t);
     uint32_t* dinput;
-    uint8_t* dbins;
+    uint32_t* dbins;
+    uint8_t* dout;
 
-    setUp(dinput, dbins,size, input);
+    printf("pointers complete\n");
+    setUp(dinput,dout, dbins,size, (void**)input);
+    printf("setup complete\n");
 
     /* This is the call you will use to time your parallel implementation */
     TIME_IT("opt_2dhisto",
             1000,
-            opt_2dhisto(size,(uint32_t*) dinput,(uint8_t*) dbins));
+            opt_2dhisto(size,(uint32_t*) dinput,(uint32_t*) dbins));
 
+    printf("opt complete\n");
+    parallel32to8copy(dbins, dout);
+
+    printf("paralell complete\n");
+    // manipulate teardown for new arguments
     /* End of teardown code */
-    tearDown(kernel_bins, dbins, dinput);
-
+    tearDown(kernel_bins, dout, dbins, dinput);
+    printf("teardown complete\n");
     int passed=1;
     for (int i=0; i < HISTO_HEIGHT*HISTO_WIDTH; i++){
         if (gold_bins[i] != kernel_bins[i]){
