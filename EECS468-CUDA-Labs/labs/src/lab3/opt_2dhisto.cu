@@ -5,103 +5,66 @@
 #include <cutil.h>
 #include "util.h"
 #include "ref_2dhisto.h"
-#include "opt_2dhisto.h"
 
-void opt_2dhisto(int size, uint32_t* dinput, uint32_t* dbins)
+#define T 12
+
+__global__ void opt_2dhistoKernel(uint32_t*, size_t, size_t, uint32_t*);
+__global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
+
+void opt_2dhisto( uint32_t* input, size_t height, size_t width, uint8_t* bins, uint32_t* g_bins/*define your own function parameters*/ )
 {
-    dim3 dimBlock(1024);
-    dim3 dimGrid(1);
-    HistoKernel<<<dimGrid, dimBlock>>>(size, dinput, dbins); 
-       /* This function should only contain a call to the GPU 
+    /* This function should only contain a call to the GPU
        histogramming kernel. Any memory allocations and
        transfers must be done outside this function */
+       //cudaThreadSynchronize();
+       opt_2dhistoKernel<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
 
+       // Convert 32 bit to 8 bit
+       opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 512, 512>>>(g_bins, bins, 1024);
+
+       cudaThreadSynchronize();
 }
-
-void parallel32to8copy(uint32_t* dbins, uint8_t* dout)
-{
-    dim3 dimBlock(1024);
-    dim3 dimGrid(512);
-    CopyKernel<<<dimGrid, dimBlock>>>(dbins, dout); 
 
 /* Include below the implementation of any other functions you need */
+__global__ void opt_2dhistoKernel(uint32_t *input, size_t height, size_t width, uint32_t* bins){
+     int i = blockDim.x * blockIdx.x + threadIdx.x;
+     if (i < 1024)
+        bins[i] = 0;
+     __syncthreads();
+     int stride = blockDim.x * gridDim.x;
+     while (i < 4096 * height)
+     {
+        if (i %  ((INPUT_WIDTH + 128) & 0xFFFFFF80) < width )
+           atomicAdd( &(bins[input[i]]), 1 );
+        i += stride;
+     }
 }
 
-__global__ void CopyKernel(uint32_t* dbins, uint8_t* dout)
-{
-    const int globaltid = blockIdx.x * blockDim.x + threadIdx.x;
-    const int numThreads = blockDim.x * gridDim.x;
 
-    const int BIN_COUNT = HISTO_HEIGHT * HISTO_WIDTH;
+__global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length){
+	int idx = blockDim.x * blockIdx.x + threadIdx.x;
 
-    for (int i = globaltid; i < BIN_COUNT; i += numThreads)
-    {
-        dout[i] = dbins[i] <= 255 ? dbins[i] : 255;
-    
-    }
+	output[idx] = (uint8_t)((input[idx] < UINT8_MAX) * input[idx]) + (input[idx] >= UINT8_MAX) * UINT8_MAX;
+
+	__syncthreads();
 }
 
-void setUp(void* dinput,void* dout, void* dbins, unsigned int size, void** input)
-{
-
-    cudaMalloc((void**)&dout, HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t));
-    printf("dout malloc complete\n");
-    cudaMalloc((void**)&dinput, size);
-    printf("dinput malloc complete\n");
-    cudaMalloc((void**)&dbins, HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint32_t));
-    printf("dbins malloc complete\n");
-    cudaMemset(dbins, 0, HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint32_t));
-    printf("dbins memset complete\n");
-    cudaMemset(dout, 0, HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t));
-    printf("dout memset complete\n");
-
-    cudaMemcpy(dinput, *input, size, cudaMemcpyHostToDevice); 
-    printf("memcpy complete\n");
-    
-
-}
-    /* End of setup code */
-
-void tearDown(void* kernel_bins,void* dout, void* dbins, void* dinput) 
-{
-    /* Include your teardown code below (temporary variables, function calls, etc.) */
-
-    cudaThreadSynchronize();
-    cudaMemcpy(kernel_bins,dout, HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t), cudaMemcpyDeviceToHost); 
-    cudaFree(dinput);
-    cudaFree(dbins);
-    cudaFree(dout);
+void* AllocateDevice(size_t size){
+	void* ret;
+	cudaMalloc(&ret, size);
+	return ret;
 }
 
-__global__ void HistoKernel(int size, uint32_t* dinput, uint32_t* dbins) 
-{
-    const int BIN_COUNT = HISTO_HEIGHT * HISTO_WIDTH; 
-    const int globalTid = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    const int numThreads = blockDim.x * gridDim.x;
+void CopyToDevice(void* D_device, void* D_host, size_t size){
+	cudaMemcpy(D_device, D_host, size,
+					cudaMemcpyHostToDevice);
+}
 
-    __shared__ unsigned int s_Hist[BIN_COUNT]; 
+void CopyFromDevice(void* D_host, void* D_device, size_t size){
+	cudaMemcpy(D_host, D_device, size,
+					cudaMemcpyDeviceToHost);
+}
 
-    for (int pos = threadIdx.x; pos < BIN_COUNT; pos += blockDim.x)
-    {
-       s_Hist[pos] = 0;
-    }
-    __syncthreads();
- 
-    for (int pos = globalTid; pos < size; pos += numThreads)
-    {
-        uint32_t curr_Data = dinput[pos];
-
-        atomicAdd(s_Hist + curr_Data, 1);
-    }
-
-    __syncthreads();
-
-    for (int pos = threadIdx.x; pos < BIN_COUNT; pos += blockDim.x)
-    {
-	// unsigned int curr = dbins[pos];
-        atomicAdd(dbins + pos, s_Hist[pos]);
-        // if (curr > dbins[pos]) dbins[pos] = 255;
-    }
-
+void FreeDevice(void* D_device){
+	cudaFree(D_device);
 }

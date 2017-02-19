@@ -1,11 +1,15 @@
 #ifndef OPT_KERNEL
 #define OPT_KERNEL
 
+void opt_2dhisto( /*Define your own function parameters*/ );
 
-__global__ void HistoKernel(int size, uint32_t* dinput, uint32_t* dbins);
+/* Include below the function headers of any other functions that you implement */
+void* AllocateDevice(size_t size);
 
-void parallel32to8copy(uint32_t* dbins, uint8_t* dout);
+void CopyToDevice(void* D_device, void* D_host, size_t size);
 
-__global__ void CopyKernel(uint32_t* dbins, uint8_t* dout);
+void CopyFromDevice(void* D_host, void* D_device, size_t size);
+
+void FreeDevice(void* D_device);
 
 #endif
