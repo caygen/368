@@ -10,7 +10,7 @@
 //__global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
 
 __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint32_t* bins);
-__global__ void saturate(unsigned int *bins, unsigned int num_bins);
+__global__ void opt_saturate(unsigned int *bins, unsigned int num_bins);
 
 void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, uint32_t* g_bins)
 {
@@ -23,14 +23,17 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
     //blockDim is 32*32 = 1024 threads per block
     //gridDim is (size of the input data) / (blockDim)
 
+
+    //first version of kernel
     //histoKernel<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
     //Converting 32_bit histogram to 8 bit
     //opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, bins, 1024);
 
 
+    //second version of kernel
     histoKernel2<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
 
-    saturate<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, HISTO_WIDTH*HISTO_HEIGHT);
+    opt_saturate<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, HISTO_WIDTH*HISTO_HEIGHT);
 
     cudaThreadSynchronize();
 
@@ -80,7 +83,7 @@ __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint3
   	}
 }
 
-__global__ void saturate(unsigned int *bins, unsigned int num_bins) {
+__global__ void opt_opt_saturate(unsigned int *bins, unsigned int num_bins) {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 
 	if (i < num_bins) {
