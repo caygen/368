@@ -18,12 +18,6 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
        histogramming kernel. Any memory allocations and
        transfers must be done outside this function */
 
-
-    //Creating 32_bit histogram in parallel
-    //blockDim is 32*32 = 1024 threads per block
-    //gridDim is (size of the input data) / (blockDim)
-
-
     //first version of kernel
     //histoKernel<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
     //Converting 32_bit histogram to 8 bit
@@ -36,7 +30,6 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
     opt_saturate<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, HISTO_WIDTH*HISTO_HEIGHT);
 
     cudaThreadSynchronize();
-
 }
 
 /* Include below the implementation of any other functions you need */
