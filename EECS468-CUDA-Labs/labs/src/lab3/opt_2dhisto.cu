@@ -57,7 +57,5 @@ void CopyFromDevice(void* d_host, void* d_device, size_t size){
 }
 
 void FreeDevices(){
-  cudaFree(d_bins);
-  cudaFree(g_bins);
-  cudaFree(d_input);
+	cudaFree(d_space);
 }
