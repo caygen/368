@@ -6,8 +6,6 @@
 #include "util.h"
 #include "ref_2dhisto.h"
 
-//#define T 12
-
 __global__ void opt_2dhistoKernel(uint32_t*, size_t, size_t, uint32_t*);
 __global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
 
@@ -16,21 +14,8 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
     /* This function should only contain a call to the GPU
        histogramming kernel. Any memory allocations and
        transfers must be done outside this function */
-
-    // Kernel to calculate the bins
-    // We use 1024 * T threads so that more streaming multiprocessors can be used
-    //opt_2dhistoKernel<<<2 * T, 512>>>(input, height, width, g_bins);
-    /*
-    dim3 block(16, 16);
-    dim3 grid( ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 16, INPUT_HEIGHT / 16);
-    opt_2dhistoKernel<<<grid, block>>>(input, height, width, g_bins);
-    */
-    //cudaThreadSynchronize();
     opt_2dhistoKernel<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
-
-    // Convert 32 bit to 8 bit
     opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 512, 512>>>(g_bins, bins, 1024);
-
     cudaThreadSynchronize();
 }
 
@@ -62,7 +47,6 @@ __global__ void opt_2dhistoKernel(uint32_t *input, size_t height, size_t width, 
         i += stride;
      }
 }
-
 
 __global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length){
 	int idx = blockDim.x * blockIdx.x + threadIdx.x;
