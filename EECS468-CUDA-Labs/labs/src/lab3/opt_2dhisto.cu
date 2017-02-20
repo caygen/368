@@ -43,13 +43,12 @@ __global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length)
 
 void* AllocateDevice(size_t size){
 	void* ret;
-	cudaMalloc(&ret, size);
+	checkCudaErrors(cudaMalloc(&ret, size));
 	return ret;
 }
 
 void CopyToDevice(void* D_device, void* D_host, size_t size){
-	cudaMemcpy(D_device, D_host, size,
-					cudaMemcpyHostToDevice);
+	checkCudaErrors(cudaMemcpy(D_device, D_host, size,cudaMemcpyHostToDevice));
 }
 
 void CopyFromDevice(void* D_host, void* D_device, size_t size){
