@@ -68,16 +68,18 @@ __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint3
   const unsigned int num_elements = 1024;
   __shared__ unsigned int s_bins[num_elements];
   int stride = blockDim.x * gridDim.x;
+  //cleanup the shared mem bins
   if (threadIdx.x < num_elements) {
 		s_bins[threadIdx.x] = 0;
 	}
+  //partial histo on shared mem
   while (globalTid < num_elements){
      int value = input[globalTid];
      atomicAdd( &(s_bins[value]), 1);
      globalTid += stride;
   }
   __syncthreads();
-
+  //back to the global mem while merging shared mem bins
   if (threadIdx.x < num_elements) {
   		atomicAdd(&(bins[threadIdx.x]), s_bins[threadIdx.x]);
   	}
