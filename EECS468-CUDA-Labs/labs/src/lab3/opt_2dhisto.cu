@@ -32,7 +32,7 @@ __global__ void opt_2dhistoKernel(uint32_t *input, size_t height, size_t width, 
      __syncthreads();
      if (row < height && col < width)
         atomicAdd(&bins[input[col + row * ((INPUT_WIDTH + 128) & 0xFFFFFF80)]], 1);
-     //__syncthreads();
+     __syncthreads();
 }
 
 /* kernel verson 2: stride */
