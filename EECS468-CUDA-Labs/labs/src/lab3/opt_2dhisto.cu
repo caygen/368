@@ -30,7 +30,8 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
 
     //Converting 32_bit histogram to 8 bit
   //  opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, bins, 1024);
-
+  int dimGrid = HISTO_HEIGHT * HISTO_WIDTH / 1024;
+  int dimBlock = 1024;
   histogram<<<dimGrid, dimBlock>>>(input, deviceBins, (height*width), NUM_BINS);
   saturate<<<dimGrid, dimBlock>>>(deviceBins, NUM_BINS);
     cudaThreadSynchronize();
