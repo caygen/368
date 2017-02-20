@@ -62,7 +62,7 @@ __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint3
   int globalTid = blockDim.x * blockIdx.x + threadIdx.x;
   const unsigned int num_elements = 1024;
   __shared__ unsigned int s_bins[num_elements];
-  --shared-- unsigned int s_merge[num_elements];
+  __shared__ unsigned int s_merge[num_elements];
   int stride = blockDim.x * gridDim.x;
   //cleanup the shared mem bins
   if (threadIdx.x < num_elements) {
