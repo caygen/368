@@ -13,7 +13,7 @@ __global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
 __global__ void histogram(unsigned int *input, unsigned int *bins,unsigned int num_elements,unsigned int num_bins);
 __global__ void saturate(unsigned int *bins, unsigned int num_bins);
 
-#define NUM_BINS = HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t);
+#define NUM_BINS = HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t)
 
 void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, uint32_t* g_bins)
 {
