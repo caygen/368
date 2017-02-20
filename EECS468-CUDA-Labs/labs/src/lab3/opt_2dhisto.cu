@@ -23,9 +23,9 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
     //blockDim is 32*32 = 1024 threads per block
     //gridDim is (size of the input data) / (blockDim)
 
-    histoKernel<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
+    //histoKernel<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
     //Converting 32_bit histogram to 8 bit
-    opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, bins, 1024);
+    //opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, bins, 1024);
 
 
     histoKernel2<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
