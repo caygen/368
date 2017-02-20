@@ -110,7 +110,7 @@ int main(int argc, char* argv[])
     FreeDevice(d_input);
 
     /* End of teardown code */
-
+    /*
     for (int i = 0; i < 1024; ++i)
     {
         printf("%03d ", kernel_bins[i]);
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
     {
         printf("%03d ", gold_bins[i]);
     }
-
+    */
     int passed=1;
     for (int i=0; i < HISTO_HEIGHT*HISTO_WIDTH; i++){
         if (gold_bins[i] != kernel_bins[i]){
