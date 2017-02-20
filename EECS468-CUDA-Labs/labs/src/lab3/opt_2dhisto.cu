@@ -43,13 +43,13 @@ __global__ void histoKernel(uint32_t *input, size_t height, size_t width, uint32
         globalTid += stride;
      }
 }
-
+/*
 __global__ void histoKernel2(uint32_t *input, size_t height, uint32_t* bins){
   int globalTid = blockDim.x * blockIdx.x + threadIdx.x;
   unsigned int num_elements = height * width;
   __shared__ unsigned int s_bins[HISTO_HEIGHT*HISTO_WIDTH];
 }
-
+*/
 
 __global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length){
 	int idx = blockDim.x * blockIdx.x + threadIdx.x;
