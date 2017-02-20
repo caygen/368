@@ -108,9 +108,9 @@ int main(int argc, char* argv[])
     /* Include your teardown code below (temporary variables, function calls, etc.) */
     CopyFromDevice(kernel_bins, d_bins, HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
 
-    FreeDevice(d_bins);
-    FreeDevice(g_bins);
-    FreeDevice(d_input);
+    cudaFree(d_bins);
+    cudaFree(g_bins);
+    cudaFree(d_input);
 
     /* End of teardown code */
 
