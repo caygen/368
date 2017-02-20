@@ -88,9 +88,14 @@ int main(int argc, char* argv[])
             ref_2dhisto(input, INPUT_HEIGHT, INPUT_WIDTH, gold_bins);)
 
     /* Include your setup code below (temp variables, function calls, etc.) */
-    uint32_t* d_input = (uint32_t*)AllocateDevice(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
-    uint8_t* d_bins = (uint8_t*)AllocateDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
-    uint32_t* g_bins = (uint32_t*)AllocateDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
+    uint32_t* d_input = (uint32_t*) cudaMalloc((*void)(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t)));
+    uint8_t* d_bins = (uint8_t*)cudaMalloc((*void)(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t)));
+    uint32_t* g_bins = (uint32_t*)cudaMalloc((*void)(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t)));
+
+
+    //uint32_t* d_input = (uint32_t*)AllocateDevice(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
+    //uint8_t* d_bins = (uint8_t*)AllocateDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
+    //uint32_t* g_bins = (uint32_t*)AllocateDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
 
     CopyToDevice(d_input, &(input[0][0]), INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
 
