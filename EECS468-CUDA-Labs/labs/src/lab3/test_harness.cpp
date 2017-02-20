@@ -88,6 +88,7 @@ int main(int argc, char* argv[])
             ref_2dhisto(input, INPUT_HEIGHT, INPUT_WIDTH, gold_bins);)
 
     /* Include your setup code below (temp variables, function calls, etc.) */
+    //printf("%d\n", INPUT_WIDTH);
     uint32_t* d_input = (uint32_t*)AllocateDevice(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
     uint8_t* d_bins = (uint8_t*)AllocateDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
     uint32_t* g_bins = (uint32_t*)AllocateDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
@@ -99,7 +100,7 @@ int main(int argc, char* argv[])
     /* This is the call you will use to time your parallel implementation */
     TIME_IT("opt_2dhisto",
             1000,
-            opt_2dhisto(  d_input, INPUT_HEIGHT, INPUT_WIDTH, d_bins, g_bins );)
+            opt_2dhisto( d_input, INPUT_HEIGHT, INPUT_WIDTH, d_bins, g_bins);)
 
     /* Include your teardown code below (temporary variables, function calls, etc.) */
     CopyFromDevice(kernel_bins, d_bins, HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
@@ -107,12 +108,24 @@ int main(int argc, char* argv[])
     FreeDevice(d_bins);
     FreeDevice(g_bins);
     FreeDevice(d_input);
+
     /* End of teardown code */
+
+    for (int i = 0; i < 1024; ++i)
+    {
+        printf("%03d ", kernel_bins[i]);
+    }
+    printf("\n");
+    for (int i = 0; i < 1024; ++i)
+    {
+        printf("%03d ", gold_bins[i]);
+    }
 
     int passed=1;
     for (int i=0; i < HISTO_HEIGHT*HISTO_WIDTH; i++){
         if (gold_bins[i] != kernel_bins[i]){
             passed = 0;
+	    printf("\n%d  %d  %d\n", i, kernel_bins[i], gold_bins[i]);
             break;
         }
     }
