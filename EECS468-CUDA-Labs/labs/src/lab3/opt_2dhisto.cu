@@ -7,7 +7,7 @@
 #include "ref_2dhisto.h"
 
 __global__ void histoKernel(uint32_t*, size_t, size_t, uint32_t*);
-__global__ void Conv32to8(uint32_t*, uint8_t*, size_t);
+__global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
 
 void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, uint32_t* g_bins)
 {
@@ -15,7 +15,7 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
        histogramming kernel. Any memory allocations and
        transfers must be done outside this function */
     histoKernel<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
-    Conv32to8<<<HISTO_HEIGHT * HISTO_WIDTH / 512, 512>>>(g_bins, bins, 1024);
+    opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 512, 512>>>(g_bins, bins, 1024);
     cudaThreadSynchronize();
 }
 
@@ -35,7 +35,7 @@ __global__ void histoKernel(uint32_t *input, size_t height, size_t width, uint32
      }
 }
 
-__global__ void Conv32to8(uint32_t *input, uint8_t* output, size_t length){
+__global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length){
 	int idx = blockDim.x * blockIdx.x + threadIdx.x;
 	output[idx] = (uint8_t)((input[idx] < UINT8_MAX) * input[idx]) + (input[idx] >= UINT8_MAX) * UINT8_MAX;
 	__syncthreads();
