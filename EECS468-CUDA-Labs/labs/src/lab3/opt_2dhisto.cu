@@ -34,7 +34,7 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
 
   int dimGrid = HISTO_HEIGHT * HISTO_WIDTH / 1024;
   int dimBlock = 1024;
-  histogram<<<dimGrid, dimBlock>>>(input, deviceBins, height*width, NUM_BINS);
+  histogram<<<dimGrid, dimBlock>>>(input, g_bins, height*width, NUM_BINS);
   saturate<<<dimGrid, dimBlock>>>(deviceBins, NUM_BINS);
     cudaThreadSynchronize();
 }
