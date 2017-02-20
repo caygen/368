@@ -9,7 +9,7 @@
 //__global__ void histoKernel(uint32_t*, size_t, size_t, uint32_t*);
 //__global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
 
-__global__ void histoKernel2(uint32_t *input, size_t height, uint32_t* bins);
+__global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint32_t* bins);
 __global__ void saturate(unsigned int *bins, unsigned int num_bins);
 
 void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, uint32_t* g_bins)
@@ -29,6 +29,7 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
 
 
     histoKernel2<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
+
     saturate<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, HISTO_WIDTH*HISTO_HEIGHT);
 
     cudaThreadSynchronize();
@@ -61,7 +62,7 @@ __global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length)
 
 __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint32_t* bins){
   int globalTid = blockDim.x * blockIdx.x + threadIdx.x;
-  const unsigned int num_elements = height * width;
+  const unsigned int num_elements = 1024;
   __shared__ unsigned int s_bins[num_elements];
   int stride = blockDim.x * gridDim.x;
   if (threadIdx.x < num_elements) {
