@@ -83,7 +83,7 @@ __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint3
   	}
 }
 
-__global__ void opt_opt_saturate(unsigned int *bins, unsigned int num_bins) {
+__global__ void opt_saturate(unsigned int *bins, unsigned int num_bins) {
 	int i = threadIdx.x + blockIdx.x * blockDim.x;
 
 	if (i < num_bins) {
