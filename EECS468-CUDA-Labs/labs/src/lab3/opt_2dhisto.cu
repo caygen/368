@@ -75,7 +75,7 @@ __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint3
   }
   __syncthreads();
 
-  if (threadIdx.x < num_bins) {
+  if (threadIdx.x < num_elements) {
   		atomicAdd(&(bins[threadIdx.x]), s_bins[threadIdx.x]);
   	}
 }
