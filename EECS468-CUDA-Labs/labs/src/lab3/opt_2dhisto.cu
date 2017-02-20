@@ -22,16 +22,16 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
 /* Include below the implementation of any other functions you need */
 
 __global__ void histoKernel(uint32_t *input, size_t height, size_t width, uint32_t* bins){
-     int i = blockDim.x * blockIdx.x + threadIdx.x;
-     if (i < 1024)
-        bins[i] = 0;
+     int globalId = blockDim.x * blockIdx.x + threadIdx.x;
+     if (globalId < 1024)
+        bins[globalId] = 0;
      __syncthreads();
      int stride = blockDim.x * gridDim.x;
-     while (i < 4096 * height)
+     while (globalId < 4096 * height)
      {
-        if (i %  ((INPUT_WIDTH + 128) & 0xFFFFFF80) < width )
-           atomicAdd( &(bins[input[i]]), 1 );
-        i += stride;
+        if (globalId %  ((INPUT_WIDTH + 128) & 0xFFFFFF80) < width )
+           atomicAdd( &(bins[input[globalId]]), 1 );
+        globalId += stride;
      }
 }
 
