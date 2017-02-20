@@ -15,7 +15,7 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
        histogramming kernel. Any memory allocations and
        transfers must be done outside this function */
     histoKernel<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
-    opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 512, 512>>>(g_bins, bins, 1024);
+    opt_32to8Kernel<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, bins, 1024);
     cudaThreadSynchronize();
 }
 
