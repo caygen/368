@@ -52,10 +52,9 @@ void CopyToDevice(void* D_device, void* D_host, size_t size){
 }
 
 void CopyFromDevice(void* D_host, void* D_device, size_t size){
-	cudaMemcpy(D_host, D_device, size,
-					cudaMemcpyDeviceToHost);
+	checkCudaErrors(cudaMemcpy(D_host, D_device, size,cudaMemcpyDeviceToHost));
 }
 
 void FreeDevice(void* D_device){
-	cudaFree(D_device);
+	checkCudaErrors(cudaFree(D_device));
 }
