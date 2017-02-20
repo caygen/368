@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
     /* This is the call you will use to time your parallel implementation */
     TIME_IT("opt_2dhisto",
             1000,
-            opt_2dhisto( /*Define your own function parameters*/ );)
+            opt_2dhisto(  d_input, INPUT_HEIGHT, INPUT_WIDTH, d_bins, g_bins );)
 
     /* Include your teardown code below (temporary variables, function calls, etc.) */
     CopyFromDevice(kernel_bins, d_bins, HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));

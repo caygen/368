@@ -1,7 +1,7 @@
 #ifndef OPT_KERNEL
 #define OPT_KERNEL
 
-void opt_2dhisto( /*Define your own function parameters*/ );
+void opt_2dhisto(  d_input, INPUT_HEIGHT, INPUT_WIDTH, d_bins, g_bins );
 
 /* Include below the function headers of any other functions that you implement */
 void* AllocateDevice(size_t size);
