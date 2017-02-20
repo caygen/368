@@ -30,7 +30,7 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
 /* Include below the implementation of any other functions you need */
 
 __global__ void histoKernel(uint32_t *input, size_t height, size_t width, uint32_t* bins){
-     int globalTid = blockDim.x * blockIdx.x + threadIdx.x;
+
      //__shared__ uint32_t* s_input = input;
      if (globalTid < 1024)
         bins[globalTid] = 0;
@@ -44,6 +44,11 @@ __global__ void histoKernel(uint32_t *input, size_t height, size_t width, uint32
      }
 }
 
+__global__ void histoKernel2(uint32_t *input, size_t height, uint32_t* bins){
+  int globalTid = blockDim.x * blockIdx.x + threadIdx.x;
+  unsigned int num_elements = height * width;
+  __shared__ unsigned int s_bins[HISTO_HEIGHT*HISTO_WIDTH];
+}
 
 
 __global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length){
