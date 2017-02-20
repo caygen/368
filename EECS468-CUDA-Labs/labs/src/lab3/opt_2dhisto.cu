@@ -20,8 +20,10 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
 }
 
 /* Include below the implementation of any other functions you need */
+
+
 /* kernel verson 1: basic */
-/*
+
 __global__ void opt_2dhistoKernel(uint32_t *input, size_t height, size_t width, uint32_t* bins){
      int col = blockDim.x * blockIdx.x + threadIdx.x;
      int row = blockDim.y * blockIdx.y + threadIdx.y;
@@ -32,8 +34,9 @@ __global__ void opt_2dhistoKernel(uint32_t *input, size_t height, size_t width, 
         atomicAdd(&bins[input[col + row * ((INPUT_WIDTH + 128) & 0xFFFFFF80)]], 1);
      //__syncthreads();
 }
-*/
+
 /* kernel verson 2: stride */
+/*
 __global__ void opt_2dhistoKernel(uint32_t *input, size_t height, size_t width, uint32_t* bins){
      int i = blockDim.x * blockIdx.x + threadIdx.x;
      if (i < 1024)
@@ -47,7 +50,7 @@ __global__ void opt_2dhistoKernel(uint32_t *input, size_t height, size_t width, 
         i += stride;
      }
 }
-
+*/
 __global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length){
 	int idx = blockDim.x * blockIdx.x + threadIdx.x;
 
