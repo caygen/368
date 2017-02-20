@@ -38,7 +38,6 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
 
 __global__ void histoKernel(uint32_t *input, size_t height, size_t width, uint32_t* bins){
       int globalTid = blockDim.x * blockIdx.x + threadIdx.x;
-     //__shared__ uint32_t* s_input = input;
      if (globalTid < 1024)
         bins[globalTid] = 0;
      __syncthreads();

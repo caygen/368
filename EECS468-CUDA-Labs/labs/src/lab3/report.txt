@@ -1,0 +1,56 @@
+Report for Lab 3 of EECS 368/468 Winter 2017
+Students: Can Aygen and Cem Ozer
+===============================================================================
+-------------------------------------------------------------------------------
+a. What is the goal for the optimization, and briefly describe the changes you
+made in the source files for that optimization.
+-------------------------------------------------------------------------------
+
+The goal of the optimization is mainly to reduce the computation time. Initially
+the sequential code given in the ref_2dhisto.cpp is essentially nested for loops
+that is the worst case scenario for parallelism.
+
+First of all we wanted to write a parallel program that would pass the test
+for that we have created a very simple version of the histoKernel function
+we have. That function had one histogram per thread and we were using the global
+memory for storing bins. We failed to successfully implement that function
+for a reason we couldn't figure out, so we moved onto block by block implementation.
+
+In the new kernel we first set content of the bins to zero and then we use stride
+to map the contents of the input to the same bank to avoid bank conflicts (should
+have used shared memory here, we noticed later that it doesn't even make sense for
+global mem) and by using atomicAdd we created the histogram on the global memory
+The opt_32to8Kernel then handles the saturation and the 32 to 8 bit conversion of
+the bins to match test_harness' input argument specs.
+
+To further optimize this kernel we crerated another version of it (histoKernel2)
+and in addition to what we did in histoKernel we also utilized the shared memory
+of each block and then merged those partial histograms in shared memory and then
+moved them to the global memory.
+
+Last optimization was a small one which is instead of first storing the result of
+the merge operation in shared memory and then moving it to global memory we write
+the result directly to the global memory.
+-------------------------------------------------------------------------------
+b. Any difficulties with completing the optimization correctly.
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+c. The man-hours spent developing the optimization (even if it was abandoned or
+not working). This will be an indication of the optimization’s difficulty.
+-------------------------------------------------------------------------------
+20 to 22 hrs per person so about 42 man hours total.
+-------------------------------------------------------------------------------
+d. If finished and working, the speedup of the code after the optimization was
+applied.
+-------------------------------------------------------------------------------
+First kernels which are histokernel and opt_32to8Kernel gave us
+x4.5 speedup @2.44 seconds
+
+First version of the second kernels histoKernel2 and opt_saturate with redundant
+memory access step gave us
+additional x2.71 speedup (x12.2 total) @0.9 seconds
+
+Last version of the second kernels histoKernel2 and opt_saturate gave us
+additional x1.18 speedup (x14.6 total) @0.76 seconds
