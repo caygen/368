@@ -41,6 +41,7 @@ c. The man-hours spent developing the optimization (even if it was abandoned or
 not working). This will be an indication of the optimization’s difficulty.
 -------------------------------------------------------------------------------
 20 to 22 hrs per person so about 42 man hours total.
+
 -------------------------------------------------------------------------------
 d. If finished and working, the speedup of the code after the optimization was
 applied.
