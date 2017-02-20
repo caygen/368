@@ -56,6 +56,8 @@ void CopyFromDevice(void* d_host, void* d_device, size_t size){
 	cudaMemcpy(d_host, d_device, size,cudaMemcpyDeviceToHost);
 }
 
-void FreeDevice(void* d_space){
-	cudaFree(d_space);
+void FreeDevices(){
+  cudaFree(d_bins);
+  cudaFree(g_bins);
+  cudaFree(d_input);
 }
