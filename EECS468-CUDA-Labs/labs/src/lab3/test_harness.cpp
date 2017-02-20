@@ -92,9 +92,9 @@ int main(int argc, char* argv[])
     uint8_t* d_bins;
     uint32_t* g_bins;
 
-    d_input = (uint32_t*)AllocateDevice(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
-    d_bins = (uint8_t*)AllocateDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
-    g_bins = (uint32_t*)AllocateDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
+    d_input = (uint32_t*)AllocateOnDevice(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
+    d_bins = (uint8_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
+    g_bins = (uint32_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
 
     CopyToDevice(d_input, &(input[0][0]), INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
 

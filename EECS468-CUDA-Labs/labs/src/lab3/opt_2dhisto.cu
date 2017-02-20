@@ -42,22 +42,20 @@ __global__ void opt_32to8Kernel(uint32_t *input, uint8_t* output, size_t length)
 	__syncthreads();
 }
 
-void* AllocateDevice(size_t size){
+void* AllocateOnDevice(size_t size){
 	void* ret;
 	cudaMalloc(&ret, size);
 	return ret;
 }
 
-void CopyToDevice(void* D_device, void* D_host, size_t size){
-	cudaMemcpy(D_device, D_host, size,
-					cudaMemcpyHostToDevice);
+void CopyToDevice(void* d_device, void* d_host, size_t size){
+	cudaMemcpy(d_device, d_host, size,cudaMemcpyHostToDevice);
 }
 
-void CopyFromDevice(void* D_host, void* D_device, size_t size){
-	cudaMemcpy(D_host, D_device, size,
-					cudaMemcpyDeviceToHost);
+void CopyFromDevice(void* d_host, void* d_device, size_t size){
+	cudaMemcpy(d_host, d_device, size,cudaMemcpyDeviceToHost);
 }
 
-void FreeDevice(void* D_device){
-	cudaFree(D_device);
+void FreeDevice(void* d_space){
+	cudaFree(d_space);
 }
