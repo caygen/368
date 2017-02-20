@@ -88,13 +88,13 @@ int main(int argc, char* argv[])
             ref_2dhisto(input, INPUT_HEIGHT, INPUT_WIDTH, gold_bins);)
 
     /* Include your setup code below (temp variables, function calls, etc.) */
-    uint32_t* d_input;
-    //uint8_t* d_bins;
-    uint32_t* g_bins;
+    uint32_t* dinput;
+    uint8_t* dbins;
+    uint32_t* gbins;
 
-    d_input = (uint32_t*)AllocateOnDevice(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
-    //d_bins = (uint8_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
-    g_bins = (uint32_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
+    dinput = (uint32_t*)AllocateOnDevice(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
+    dbins = (uint8_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
+    gbins = (uint32_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
 
     CopyToDevice(d_input, &(input[0][0]), INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
 
