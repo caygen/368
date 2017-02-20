@@ -6,7 +6,7 @@
 #include "util.h"
 #include "ref_2dhisto.h"
 
-#define T 12
+//#define T 12
 
 __global__ void opt_2dhistoKernel(uint32_t*, size_t, size_t, uint32_t*);
 __global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
