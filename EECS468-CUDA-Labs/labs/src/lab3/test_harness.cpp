@@ -96,21 +96,21 @@ int main(int argc, char* argv[])
     dbins = (uint8_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
     gbins = (uint32_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
 
-    CopyToDevice(d_input, &(input[0][0]), INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
+    CopyToDevice(dinput, &(input[0][0]), INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
 
     /* End of setup code */
 
     /* This is the call you will use to time your parallel implementation */
     TIME_IT("opt_2dhisto",
             1000,
-            opt_2dhisto( d_input, INPUT_HEIGHT, INPUT_WIDTH, d_bins, g_bins);)
+            opt_2dhisto( dinput, INPUT_HEIGHT, INPUT_WIDTH, dbins, gbins);)
 
     /* Include your teardown code below (temporary variables, function calls, etc.) */
-    CopyFromDevice(kernel_bins, d_bins, HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
+    CopyFromDevice(kernel_bins, dbins, HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
 
-    FreeCuda(d_bins);
-    FreeCuda(g_bins);
-    FreeCuda(d_input);
+    FreeCuda(dbins);
+    FreeCuda(gbins);
+    FreeCuda(dinput);
 
     /* End of teardown code */
 
