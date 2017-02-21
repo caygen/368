@@ -85,15 +85,15 @@ __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint3
 __global__ void opt_saturate(unsigned int *bins, unsigned int num_bins) {
 	int globalTid = threadIdx.x + blockIdx.x * blockDim.x;
 	if (globalTid < num_bins) {
-		if (bins[globalTid] > 255) {
-			bins[globalTid] = 255;
+		if (bins[globalTid] > UINT8_MAX) {
+			bins[globalTid] = UINT8_MAX;
     }
 	}
 }
 
 __global__ void opt_32to8Kernel2(uint32_t *bins, uint8_t* output, size_t length){
 	int idx = blockDim.x * blockIdx.x + threadIdx.x;
-	output[idx] = (uint8_t)((bins[idx] < UINT8_MAX) * bins[idx]) + (bins[idx] >= UINT8_MAX) * UINT8_MAX;
+	output[idx] = (uint8_t)((bins[idx] <= UINT8_MAX) * bins[idx]) + (bins[idx] > UINT8_MAX) * UINT8_MAX;
 	__syncthreads();
 }
 
