@@ -6,12 +6,17 @@
 #include "util.h"
 #include "ref_2dhisto.h"
 
+//Kernel Function Prototypes
+
+//First Kernels
 __global__ void histoKernel(uint32_t*, size_t, size_t, uint32_t*);
 __global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
+//__global__ void opt_32to8Kernel2(uint32_t *bins, uint8_t* output, size_t length);
 
+//OPtimized Kernels
 __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint32_t* bins);
 __global__ void opt_saturate(unsigned int *bins, unsigned int num_bins);
-__global__ void opt_32to8Kernel2(uint32_t *bins, uint8_t* output, size_t length);
+
 
 void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, uint32_t* g_bins)
 {
@@ -90,13 +95,13 @@ __global__ void opt_saturate(unsigned int *bins, unsigned int num_bins) {
     }
 	}
 }
-
+/*
 __global__ void opt_32to8Kernel2(uint32_t *bins, uint8_t* output, size_t length){
 	int idx = blockDim.x * blockIdx.x + threadIdx.x;
 	output[idx] = (uint8_t)((bins[idx] <= UINT8_MAX) * bins[idx]) + (bins[idx] > UINT8_MAX) * UINT8_MAX;
 	__syncthreads();
 }
-
+*/
 void* AllocateOnDevice(size_t size){
 	void* ret;
 	cudaMalloc(&ret, size);
