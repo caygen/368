@@ -8,7 +8,7 @@
 
 #include "util.h"
 #include "ref_2dhisto.h"
-//#include "opt_2dhisto.h"
+#include "opt_2dhisto.h"
 
 #define SQRT_2    1.4142135623730950488
 #define SPREAD_BOTTOM   (2)
@@ -23,12 +23,6 @@
     else if (value_ > (max_))\
         value_ = (max_);
 
-
-void opt_2dhisto(int size, uint32_t* dinput, uint32_t* dbins);
-void tearDown(void* kernel_bins,void* dout, void* dbins, void* dinput);
-void setUp(void* dinput,void* dout, void* dbins, unsigned int size, void** input);
-void parallel32to8copy(uint32_t* dbins, uint8_t* dout);
-
 // Generate another bin for the histogram.  The bins are created as a random walk ...
 static uint32_t next_bin(uint32_t pix)
 {
@@ -41,9 +35,9 @@ static uint32_t next_bin(uint32_t pix)
     int new_top = NEXT(top, SPREAD_TOP)
     CLAMP(new_top, 0, HISTO_HEIGHT-1)
 
-    const uint32_t result = (new_bottom | (new_top << HISTO_LOG)); 
+    const uint32_t result = (new_bottom | (new_top << HISTO_LOG));
 
-    return result; 
+    return result;
 }
 
 // Return a 2D array of histogram bin-ids.  This function generates
@@ -74,7 +68,7 @@ int main(int argc, char* argv[])
     if (argc < 2){
 	srand48(0);
     }
-    /* Case of 1 argument: Seed is specified as first command line argument */ 
+    /* Case of 1 argument: Seed is specified as first command line argument */
     else {
 	int seed = atoi(argv[1]);
 	srand48(seed);
@@ -83,7 +77,7 @@ int main(int argc, char* argv[])
     uint8_t *gold_bins = (uint8_t*)malloc(HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t));
 
     // Use kernel_bins for your final result
-    uint32_t *kernel_bins = (uint32_t*)malloc(HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint32_t));
+    uint8_t *kernel_bins = (uint8_t*)malloc(HISTO_HEIGHT*HISTO_WIDTH*sizeof(uint8_t));
 
     // A 2D array of histogram bin-ids.  One can think of each of these bins-ids as
     // being associated with a pixel in a 2D image.
@@ -93,41 +87,50 @@ int main(int argc, char* argv[])
             1000,
             ref_2dhisto(input, INPUT_HEIGHT, INPUT_WIDTH, gold_bins);)
 
-    printf("\nref complete\n");
     /* Include your setup code below (temp variables, function calls, etc.) */
+    uint32_t* d_input;
+    uint8_t* d_bins;
+    uint32_t* g_bins;
 
-    //unsigned int size = INPUT_HEIGHT * ((INPUT_HEIGHT + 128) & 0xFFFFFF80) * sizeof(uint32_t);
-    unsigned int size = INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t);
-    uint32_t* dinput;
-    uint32_t* dbins;
-    uint8_t* dout;
+    //Allocate with padding
+    d_input = (uint32_t*)AllocateOnDevice(INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
+    d_bins = (uint8_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
+    g_bins = (uint32_t*)AllocateOnDevice(HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint32_t));
 
-    printf("pointers complete\n");
-    setUp(dinput,dout, dbins,size, (void**)input);
-    printf("setup complete\n");
+    CopyToDevice(d_input, &(input[0][0]), INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) * sizeof(uint32_t));
+
+    /* End of setup code */
 
     /* This is the call you will use to time your parallel implementation */
     TIME_IT("opt_2dhisto",
             1000,
-            opt_2dhisto(size,(uint32_t*) dinput,(uint32_t*) dbins));
+            opt_2dhisto( d_input, INPUT_HEIGHT, INPUT_WIDTH, d_bins, g_bins);)
 
-    printf("opt complete\n");
-    parallel32to8copy(dbins, dout);
+    /* Include your teardown code below (temporary variables, function calls, etc.) */
+    CopyFromDevice(kernel_bins, d_bins, HISTO_HEIGHT * HISTO_WIDTH * sizeof(uint8_t));
 
-    printf("paralell complete\n");
-    // manipulate teardown for new arguments
+    FreeCuda(d_bins);
+    FreeCuda(g_bins);
+    FreeCuda(d_input);
+
     /* End of teardown code */
-    tearDown(kernel_bins, dout, dbins, dinput);
-    printf("teardown complete\n");
+
     int passed=1;
     for (int i=0; i < HISTO_HEIGHT*HISTO_WIDTH; i++){
         if (gold_bins[i] != kernel_bins[i]){
             passed = 0;
+	    printf("\n%d  %d  %d\n", i, kernel_bins[i], gold_bins[i]);
             break;
         }
     }
     (passed) ? printf("\n    Test PASSED\n") : printf("\n    Test FAILED\n");
-
+/*
+//printing for debugging
+    for (int i=0; i < HISTO_HEIGHT*HISTO_WIDTH; i++){
+	    printf("\n%d  %d  %d\n", i, kernel_bins[i], gold_bins[i]);
+    }
+*/
     free(gold_bins);
     free(kernel_bins);
+
 }
