@@ -124,12 +124,12 @@ int main(int argc, char* argv[])
         }
     }
     (passed) ? printf("\n    Test PASSED\n") : printf("\n    Test FAILED\n");
-/*
+
 //printing for debugging
     for (int i=0; i < HISTO_HEIGHT*HISTO_WIDTH; i++){
 	    printf("\n%d  %d  %d\n", i, kernel_bins[i], gold_bins[i]);
     }
-*/
+
     free(gold_bins);
     free(kernel_bins);
 
