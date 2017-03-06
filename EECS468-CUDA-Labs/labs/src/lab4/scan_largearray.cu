@@ -1,40 +1,40 @@
 /*
  * Copyright 1993-2006 NVIDIA Corporation.  All rights reserved.
  *
- * NOTICE TO USER:   
+ * NOTICE TO USER:
  *
- * This source code is subject to NVIDIA ownership rights under U.S. and 
- * international Copyright laws.  
+ * This source code is subject to NVIDIA ownership rights under U.S. and
+ * international Copyright laws.
  *
- * This software and the information contained herein is PROPRIETARY and 
- * CONFIDENTIAL to NVIDIA and is being provided under the terms and 
- * conditions of a Non-Disclosure Agreement.  Any reproduction or 
- * disclosure to any third party without the express written consent of 
- * NVIDIA is prohibited.     
+ * This software and the information contained herein is PROPRIETARY and
+ * CONFIDENTIAL to NVIDIA and is being provided under the terms and
+ * conditions of a Non-Disclosure Agreement.  Any reproduction or
+ * disclosure to any third party without the express written consent of
+ * NVIDIA is prohibited.
  *
- * NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE 
- * CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR 
- * IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH 
- * REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF 
- * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.   
- * IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL, 
- * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS 
- * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE 
- * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE 
- * OR PERFORMANCE OF THIS SOURCE CODE.  
+ * NVIDIA MAKES NO REPRESENTATION ABOUT THE SUITABILITY OF THIS SOURCE
+ * CODE FOR ANY PURPOSE.  IT IS PROVIDED "AS IS" WITHOUT EXPRESS OR
+ * IMPLIED WARRANTY OF ANY KIND.  NVIDIA DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOURCE CODE, INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE.
+ * IN NO EVENT SHALL NVIDIA BE LIABLE FOR ANY SPECIAL, INDIRECT, INCIDENTAL,
+ * OR CONSEQUENTIAL DAMAGES, OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
+ * OR PERFORMANCE OF THIS SOURCE CODE.
  *
- * U.S. Government End Users.  This source code is a "commercial item" as 
- * that term is defined at 48 C.F.R. 2.101 (OCT 1995), consisting  of 
- * "commercial computer software" and "commercial computer software 
- * documentation" as such terms are used in 48 C.F.R. 12.212 (SEPT 1995) 
- * and is provided to the U.S. Government only as a commercial end item.  
- * Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through 
- * 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the 
+ * U.S. Government End Users.  This source code is a "commercial item" as
+ * that term is defined at 48 C.F.R. 2.101 (OCT 1995), consisting  of
+ * "commercial computer software" and "commercial computer software
+ * documentation" as such terms are used in 48 C.F.R. 12.212 (SEPT 1995)
+ * and is provided to the U.S. Government only as a commercial end item.
+ * Consistent with 48 C.F.R.12.212 and 48 C.F.R. 227.7202-1 through
+ * 227.7202-4 (JUNE 1995), all U.S. Government End Users acquire the
  * source code with only those rights set forth herein.
  */
 
 #ifdef _WIN32
-#  define NOMINMAX 
+#  define NOMINMAX
 #endif
 
 #include <stdlib.h>
@@ -44,9 +44,9 @@
 #include <cutil.h>
 
 // includes, kernels
-#include <scan_largearray_kernel.cu>  
+#include <scan_largearray_kernel.cu>
 
-#define DEFAULT_NUM_ELEMENTS 16777216 
+#define DEFAULT_NUM_ELEMENTS 16777216
 #define MAX_RAND 3
 
 
@@ -57,17 +57,17 @@ void runTest( int argc, char** argv);
 int ReadFile(float*, char* file_name, int size);
 void WriteFile(float*, char* file_name, int size);
 
-extern "C" 
-unsigned int compare( const float* reference, const float* data, 
+extern "C"
+unsigned int compare( const float* reference, const float* data,
                      const unsigned int len);
-extern "C" 
+extern "C"
 void computeGold( float* reference, float* idata, const unsigned int len);
 
 ////////////////////////////////////////////////////////////////////////////////
 // Program main
 ////////////////////////////////////////////////////////////////////////////////
-int 
-main( int argc, char** argv) 
+int
+main( int argc, char** argv)
 {
     runTest( argc, argv);
     return EXIT_SUCCESS;
@@ -77,7 +77,7 @@ main( int argc, char** argv)
 //! Run a scan test for CUDA
 ////////////////////////////////////////////////////////////////////////////////
 void
-runTest( int argc, char** argv) 
+runTest( int argc, char** argv)
 {
     int errorM = 0;
     float device_time;
@@ -90,7 +90,7 @@ runTest( int argc, char** argv)
     unsigned int mem_size = sizeof( float) * num_elements;
     float* h_data = (float*) malloc( mem_size);
 
-    // * No arguments: Randomly generate input data and compare against the 
+    // * No arguments: Randomly generate input data and compare against the
     //   host's result.
     // * One argument: Randomly generate input data and write the result to
     //   file name specified by first argument
@@ -101,8 +101,8 @@ runTest( int argc, char** argv)
     //   then input data from the file name specified by 2nd argument and write the
     //   SCAN output to file name specified by the 3rd argument.
     switch(argc-1)
-    {      
-        case 2: 
+    {
+        case 2:
             // Determine size of array
             cutReadFilei(argv[1], &size, &data2read, true);
             if(data2read != 1){
@@ -116,13 +116,13 @@ runTest( int argc, char** argv)
             mem_size = sizeof( float) * num_elements;
             h_data = (float*) malloc( mem_size);
 
-            for( unsigned int i = 0; i < num_elements; ++i) 
+            for( unsigned int i = 0; i < num_elements; ++i)
             {
                 h_data[i] = (int)(rand() % MAX_RAND);
             }
             WriteFile(h_data, argv[2], num_elements);
         break;
-    
+
         case 3:  // Three Arguments
             cutReadFilei(argv[1], &size, &data2read, true);
             if(data2read != 1){
@@ -131,7 +131,7 @@ runTest( int argc, char** argv)
             }
 
             num_elements = size[0];
-            
+
             // allocate host memory to store the input data
             mem_size = sizeof( float) * num_elements;
             h_data = (float*) malloc( mem_size);
@@ -143,33 +143,33 @@ runTest( int argc, char** argv)
                 exit(1);
             }
         break;
-        
+
         default:  // No Arguments or one argument
             // initialize the input data on the host to be integer values
             // between 0 and 1000
             // Use DEFAULT_NUM_ELEMENTS num_elements
             num_elements = DEFAULT_NUM_ELEMENTS;
-            
+
             // allocate host memory to store the input data
             mem_size = sizeof( float) * num_elements;
             h_data = (float*) malloc( mem_size);
 
             // initialize the input data on the host
-            for( unsigned int i = 0; i < num_elements; ++i) 
+            for( unsigned int i = 0; i < num_elements; ++i)
             {
 //                h_data[i] = 1.0f;
                 h_data[i] = (int)(rand() % MAX_RAND);
             }
-        break;  
-   } 
+        break;
+   }
 
-    
+
     unsigned int timer;
     CUT_SAFE_CALL(cutCreateTimer(&timer));
 
-      
+
     // compute reference solution
-    float* reference = (float*) malloc( mem_size);  
+    float* reference = (float*) malloc( mem_size);
 	cutStartTimer(timer);
     computeGold( reference, h_data, num_elements);
 	cutStopTimer(timer);
@@ -188,15 +188,15 @@ runTest( int argc, char** argv)
     CUDA_SAFE_CALL( cudaMalloc( (void**) &d_odata, mem_size));
 
     // allocate for array1 and array2, which will be used in prescanArray
-    float* array1 = NULL; 
-    float* array2 = NULL; 
-    float* array3 = NULL; 
-    float* array4 = NULL; 
+    float* array1 = NULL;
+    float* array2 = NULL;
+    float* array3 = NULL;
+    float* array4 = NULL;
 
-    unsigned int array1_size = sizeof(float) * 16 * 1024; 
-    unsigned int array2_size = sizeof(float) * 16 * 1024; 
-    unsigned int array3_size = sizeof(float) * 16; 
-    unsigned int array4_size = sizeof(float) * 16; 
+    unsigned int array1_size = sizeof(float) * 16 * 1024;
+    unsigned int array2_size = sizeof(float) * 16 * 1024;
+    unsigned int array3_size = sizeof(float) * 16;
+    unsigned int array4_size = sizeof(float) * 16;
 
     CUDA_SAFE_CALL( cudaMalloc( (void**) &array1, array1_size));
     CUDA_SAFE_CALL( cudaMalloc( (void**) &array2, array2_size));
@@ -210,14 +210,14 @@ runTest( int argc, char** argv)
 
     // **===-----------------------------------------------------------===**
 
-    // Run just once to remove startup overhead for more accurate performance 
+    // Run just once to remove startup overhead for more accurate performance
     // measurement
     prescanArray(d_odata, d_idata, 16, array1, array2, array3, array4);
 
     // Run the prescan
     CUT_SAFE_CALL(cutCreateTimer(&timer));
     cutStartTimer(timer);
-    
+
     // **===-------- Lab4: Modify the body of this function -----------===**
     prescanArray(d_odata, d_idata, num_elements, array1, array2, array3, array4);
     // **===-----------------------------------------------------------===**
@@ -234,12 +234,12 @@ runTest( int argc, char** argv)
 
 
     // copy result from device to host
-    CUDA_SAFE_CALL(cudaMemcpy( h_data, d_odata, sizeof(float) * num_elements, 
+    CUDA_SAFE_CALL(cudaMemcpy( h_data, d_odata, sizeof(float) * num_elements,
                                cudaMemcpyDeviceToHost));
     // print statements for debugging
     // print the first and last element of the 1024 array block
     for (int i = 0; i < 16384; ++i)
-    {	
+    {
 	//if (i % 1024 == 0) {printf("+++++++++++++++++++++++++++++++++++++++++++++++");}
 	if ( ((i+1)%1024 == 0) || ((i)%1024 == 0))
         {
@@ -249,7 +249,7 @@ runTest( int argc, char** argv)
          //   printf("%f", reference[i]);
           //  printf("||");
     }
-
+/*
     printf("________________________________________________________________");
     printf("________________________________________________________________");
     printf("________________________________________________________________");
@@ -258,6 +258,7 @@ runTest( int argc, char** argv)
     printf("________________________________________________________________");
     printf("________________________________________________________________");
     printf("________________________________________________________________");
+*/
 
     for (int i = 0; i < 16384; ++i)
     {
@@ -266,7 +267,7 @@ runTest( int argc, char** argv)
         {
        	    printf("%f", h_data[i]);
             printf("||");
-        } 
+        }
 	//    printf("%f", h_data[i]);
          //   printf("||");
     }
@@ -307,4 +308,3 @@ void WriteFile(float* M, char* file_name, int size)
 {
     cutWriteFilef(file_name, M, size, 0.0001f);
 }
-
