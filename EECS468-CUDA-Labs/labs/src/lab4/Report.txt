@@ -3,12 +3,17 @@ Cem Ozer
 Can Aygen
 
 
+-------------------------------------------------------------------------------
 a. Near the top of "scan_largearray.cu", set #define DEFAULT_NUM_ELEMENTS to 16777216. Set #define MAX_RAND to 3. Record the performance results when run without arguments, including the host CPU and GPU processing times and the speedup.
+-------------------------------------------------------------------------------
 CPU Time:               1x  @ ~46.5ms
-GPU Time 1st approach:  ~2x @ ~24ms
-GPU Time 2nd approach:  ~3x @ ~15.5ms (test fails)
+GPU Time 1st optimization:  ~2x @ ~24ms
+GPU Time 2nd optimization:  ~3x @ ~15.5ms (test fails) (bank conflict solving)
 
+
+-------------------------------------------------------------------------------
 b. Describe how you handled arrays not a power of two in size, and how you minimized shared memory bank conflicts. Also describe any other performance- enhancing optimizations you added.
+-------------------------------------------------------------------------------
 
 Our initial super naive version of the scan kernel was working just like the sequential code where we weren't tiling the work to different blocks. Once we did that it failed right away because of we were using exclusive scan and thus with the block implementation we were missing the last element of each block.
 We fixed this problem by keeping the original versions of the scanned blocks in the global memory, right where the CPU put them, and copying the content of these arrays into a new array and then using these arrays to perform the scan algorithm.
@@ -18,4 +23,18 @@ To optimize it as it is we tried different block and grid sizes and doing the co
 The reason for this low speedup rate was the bank conflicts. To solve bank conflicts we created the second version of the scan kernel, where we try to add some padding to the arrays so the gpu always tries to access different banks. The padding level would change with increasing number of banks and the number of elements we are processing.
 Although this implementation did not pass the test we had another x1.5 improvement over the previous version. Also by inspection and from our experience from previous lab we can clearly say that we could not implement the padding successfully. Since in the previous lab we could see much more improvement and form lecture notes we know that bank conflicts are the main bottleneck for the scan algorithms.
 
+
+-------------------------------------------------------------------------------
 c. How do the measured FLOPS rate for the CPU and GPU kernels compare with each other, and with the theoretical performance limits of each architecture? For your GPU implementation, discuss what bottlenecks your code is likely bound by, limiting higher performance.
+-------------------------------------------------------------------------------
+FLOPS rate should be proportional to the array size (number of floating point numbers) and thus to the time in the sequential case.
+In the GPU case it should be proportional the time as well because the average FLOPS rate reaches asymptotically the theoretical FLOPS rate as the number of warps gets bigger.
+The CPUs FLOP rate os therefore very closely tied to its clock speed and whether it has multicore and if it can do vectorization of the arrays, but mainly the clock speed.
+
+On the other hand GPU performance (flop rate) is tied to its pararallelizm levels, since GPUs clock rate is almost always slower than CPU the only way using CUDA makes sense is if we can calculate large data in parallel.
+
+In our first optimized implementation we had a speedup of about 2x. That is because of the high number of bank conflicts the GPU wasted a lot of time doing memory accesses and waiting for other threads to write to the relevant banks so the other threads could write other parts of the same bank later.
+
+In our attempt to solve the bank conflicts we are using smaller blocks and larger grid but each block also has padded arrays. The goal was to access values with computed offsets instead of accessing them sequentially in the memory, where the offsets are basically the padded locations.
+
+Currently the main bottleneck of the design remains to be the bank conflicts we failed to implement correctly; however if were past bank conflicts the next bottleneck would be the efficient use of the shared memory. That is because in our current implementation we are pretty much occupying the entire shared memory, and thus sometimes even facing with execution errors when trying to debug due to physical memory limitations.
