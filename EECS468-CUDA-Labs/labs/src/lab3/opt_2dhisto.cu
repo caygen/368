@@ -11,7 +11,7 @@
 //First Kernels
 __global__ void histoKernel(uint32_t*, size_t, size_t, uint32_t*);
 __global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
-//__global__ void opt_32to8Kernel2(uint32_t *bins, uint8_t* output, size_t length);
+__global__ void opt_32to8Kernel2(uint32_t *bins, uint8_t* output, size_t length);
 
 //OPtimized Kernels
 __global__ void histoKernel2(uint32_t *input, size_t height, size_t width, uint32_t* bins);
@@ -35,8 +35,8 @@ void opt_2dhisto(uint32_t* input, size_t height, size_t width, uint8_t* bins, ui
     //second version of kernel
     histoKernel2<<<INPUT_HEIGHT * ((INPUT_WIDTH + 128) & 0xFFFFFF80) / 1024 , 1024>>>(input, height, width, g_bins);
     //saturate the bin counters at 255
-    opt_saturate<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, HISTO_WIDTH*HISTO_HEIGHT);
-    //opt_32to8Kernel2<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, bins, 1024);
+    //opt_saturate<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, HISTO_WIDTH*HISTO_HEIGHT);
+    opt_32to8Kernel2<<<HISTO_HEIGHT * HISTO_WIDTH / 1024, 1024>>>(g_bins, bins, 1024);
     cudaThreadSynchronize();
 }
 
