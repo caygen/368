@@ -128,7 +128,7 @@ __global__ void addArray(float *from, float *to, int divisor, int numElements)
 // below is scan optimized for bank conflicts
 __global__ void scan2(float *g_odata, float *g_idata, int n)
 {
-	__shared__ float temp[];
+	__shared__ float temp[2048];
 	int thid = blockIdx.x * blockDim.x + threadIdx.x;
 	int offset = 1;
 
