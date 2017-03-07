@@ -15,7 +15,7 @@ We fixed this problem by keeping the original versions of the scanned blocks in 
 Since the scan functions wouldn't modify the original file we were able to fix this problem.
 To optimize it as it is we tried different block and grid sizes and doing the computation on 1024 elements turned out to be the fastest option.
 
-The reason for this low speedup rate was the bank conflicts. To solve bank conflicts we created the second version of the scan kernel, where we 
-
+The reason for this low speedup rate was the bank conflicts. To solve bank conflicts we created the second version of the scan kernel, where we try to add some padding to the arrays so the gpu always tries to access different banks. The padding level would change with increasing number of banks and the number of elements we are processing.
+Although this implementation did not pass the test we had another x1.5 improvement over the previous version. Also by inspection and from our experience from previous lab we can clearly say that we could not implement the padding successfully. Since in the previous lab we could see much more improvement and form lecture notes we know that bank conflicts are the main bottleneck for the scan algorithms.
 
 c. How do the measured FLOPS rate for the CPU and GPU kernels compare with each other, and with the theoretical performance limits of each architecture? For your GPU implementation, discuss what bottlenecks your code is likely bound by, limiting higher performance.

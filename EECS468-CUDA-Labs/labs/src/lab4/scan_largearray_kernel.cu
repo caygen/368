@@ -183,8 +183,6 @@ __global__ void scan2(float *g_odata, float *g_idata, int n)
 	g_odata[bi] = temp[bi + bankOffsetB];  // write results to device memory
 }
 
-//scan3
-
 
 
 #endif // _PRESCAN_CU_
