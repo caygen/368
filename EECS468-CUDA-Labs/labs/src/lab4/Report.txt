@@ -4,10 +4,18 @@ Can Aygen
 
 
 a. Near the top of "scan_largearray.cu", set #define DEFAULT_NUM_ELEMENTS to 16777216. Set #define MAX_RAND to 3. Record the performance results when run without arguments, including the host CPU and GPU processing times and the speedup.
-
+CPU Time:               1x  @ ~46.5ms
+GPU Time 1st approach:  ~2x @ ~24ms
+GPU Time 2nd approach:  ~3x @ ~15.5ms (test fails)
 
 b. Describe how you handled arrays not a power of two in size, and how you minimized shared memory bank conflicts. Also describe any other performance- enhancing optimizations you added.
 
+Our initial super naive version of the scan kernel was working just like the sequential code where we weren't tiling the work to different blocks. Once we did that it failed right away because of we were using exclusive scan and thus with the block implementation we were missing the last element of each block.
+We fixed this problem by keeping the original versions of the scanned blocks in the global memory, right where the CPU put them, and copying the content of these arrays into a new array and then using these arrays to perform the scan algorithm.
+Since the scan functions wouldn't modify the original file we were able to fix this problem.
+To optimize it as it is we tried different block and grid sizes and doing the computation on 1024 elements turned out to be the fastest option.
+
+The reason for this low speedup rate was the bank conflicts. To solve bank conflicts we created the second version of the scan kernel, where we 
 
 
 c. How do the measured FLOPS rate for the CPU and GPU kernels compare with each other, and with the theoretical performance limits of each architecture? For your GPU implementation, discuss what bottlenecks your code is likely bound by, limiting higher performance.
