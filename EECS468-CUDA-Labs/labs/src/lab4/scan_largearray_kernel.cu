@@ -69,7 +69,7 @@ __global__ void copy(float *from_scanned, float *from_unscanned, float *to, int 
 // do scan on g_idata, write back to g_odata
 __global__ void scan(float *g_odata, float *g_idata, int blockSize)
 {
-	__shared__ float temp[2048];
+	__shared__ float temp[1024];
 	int allid = blockIdx.x * blockDim.x + threadIdx.x;
 	int thid = threadIdx.x;
 	int offset = 1;
@@ -129,7 +129,8 @@ __global__ void addArray(float *from, float *to, int divisor, int numElements)
 __global__ void scan2(float *g_odata, float *g_idata, int n)
 {
 	__shared__ float temp[1024];
-	int thid = blockIdx.x * blockDim.x + threadIdx.x;
+	int thid = threadIdx.x;
+  //int thid = blockIdx.x * blockDim.x + threadIdx.x;
 	int offset = 1;
 
 	int ai = thid;
