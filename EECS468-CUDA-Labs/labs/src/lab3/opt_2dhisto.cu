@@ -10,7 +10,7 @@
 
 //First Kernels
 __global__ void histoKernel(uint32_t*, size_t, size_t, uint32_t*);
-//__global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
+__global__ void opt_32to8Kernel(uint32_t*, uint8_t*, size_t);
 __global__ void opt_32to8Kernel2(uint32_t *bins, uint8_t* output, size_t length);
 
 //OPtimized Kernels
