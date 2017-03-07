@@ -9,6 +9,7 @@
 #define LOG_NUM_BANKS 5
 // Lab4: You can use any other block size you wish.
 #define BLOCK_SIZE 1024
+#define scale 0.5
 #define CONFLICT_FREE_OFFSET(n) \
     ((n) >> NUM_BANKS + (n) >> (2 * LOG_NUM_BANKS))
 
@@ -27,21 +28,22 @@ void prescanArray(float *outArray, float *inArray, int numElements,
 	// each block computes 1024 indices, so 2 indices per thread
 	// do scan on inArray, write back to outArray
 	//scan<<<16384, 512>>>(outArray, inArray, 1024);
-  scan2<<<16384*2, 256/2>>>(outArray, inArray, 1024);
+
+  scan2<<<16384*scale, 256/scale>>>(outArray, inArray, 1024);
 
 	// read every 1024 elements from outArray and write it to array1
 	copy<<<16, 1024>>>(outArray, inArray, array1, 16384);
 
 	// do scan on array1, write back to array2
 	//scan<<<16, 512>>>(array2, array1, 1024);
-  scan2<<<16*2, 512/2>>>(array2, array1, 1024);
+  scan2<<<16*scale, 512/scale>>>(array2, array1, 1024);
 
 	// read every 1024 elements from array2 and write it to array3
 	copy<<<1, 16>>>(array2, array1, array3, 16);
 
 	// do scan on array3, write back to array4
 	//scan<<<1, 8>>>(array4, array3, 16);
-	scan2<<<1*2, 8/2>>>(array4, array3, 16);
+	scan2<<<1*scale, 8/scale>>>(array4, array3, 16);
 
 	// add array2[i] to outArray[i*1048576:((i+1)*1048576)-1]
 	addArray<<<16384, 1024>>>(array4, outArray, 1024*1024, numElements);
