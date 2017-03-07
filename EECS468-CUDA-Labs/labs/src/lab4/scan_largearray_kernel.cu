@@ -9,7 +9,7 @@
 #define LOG_NUM_BANKS 5
 // Lab4: You can use any other block size you wish.
 #define BLOCK_SIZE 1024
-#define scale 0.5
+#define scale 2
 #define CONFLICT_FREE_OFFSET(n) \
     ((n) >> NUM_BANKS + (n) >> (2 * LOG_NUM_BANKS))
 
