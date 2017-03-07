@@ -134,7 +134,8 @@ __global__ void scan2(float *g_odata, float *g_idata, int n)
 	int offset = 1;
 
 	int ai = thid;
-	int bi = thid + (n);
+	//int bi = thid + (n/2);
+  int bi = thid + (blockDim.x /2);
 	int bankOffsetA = CONFLICT_FREE_OFFSET(ai);
 	int bankOffsetB = CONFLICT_FREE_OFFSET(bi);
 	temp[ai + bankOffsetA] = g_idata[ai];
